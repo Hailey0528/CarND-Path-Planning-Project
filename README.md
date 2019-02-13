@@ -1,6 +1,15 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
-   
+
+### Prediction
+this is a specific situation for prediction. The 
+Assume the vehicle is in the highway. 
+after executing the current trajectory if
+
+### Behavior Planning
+In this part we need to decide which decision the vehicle will make. As in a simplified highway situatation, the vehicle can only execute three moves: change the lane to the left, change the lane to the right, decelerate and accelerate in the same lane. Let's think of the situation, if after executing the trajectory
+### Trajectory Planning
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).  
 
