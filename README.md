@@ -7,9 +7,72 @@ Assume the vehicle is in the highway.
 after executing the current trajectory if
 
 ### Behavior Planning
-In this part we need to decide which decision the vehicle will make. As in a simplified highway situatation, the vehicle can only execute three moves: change the lane to the left, change the lane to the right, decelerate and accelerate in the same lane. Let's think of the situation, if after executing the trajectory
-### Trajectory Planning
+In this part we need to decide which decision the vehicle will make. So we need to solve two problems: in which lane will the ego-vehicle be, and what is the reference velocity for the ego-vehicle. As in a simplified highway situatation, the vehicle can only execute three moves: change the lane to the left, change the lane to the right, decelerate and accelerate in the same lane. Let's think of the situation, if after executing the trajector
 
+### Trajectory Planning
+If the previous trajectory has no point or only one point, then set the refence point to the current position of the ego-vehicle and set the reference yaw rate to the current yaw rate of the ego vehicle. 
+
+                  //Use two points that make the path tangent to the car
+                  double prev_car_x = car_x - cos(car_yaw);
+                  double prev_car_y = car_y - sin(car_yaw);
+
+                  ptsx.push_back(prev_car_x);
+                  ptsx.push_back(car_x);
+
+                  ptsy.push_back(prev_car_y);
+                  ptsy.push_back(car_y);
+                  
+If the previous trajectory has more or equal to 2 points, the reference rate will be caiculated based on the last two points of the previous trajectory.
+
+                  ref_x = previous_path_x[prev_size -1];
+                  ref_y = previous_path_y[prev_size -1];
+
+                  double ref_x_prev = previous_path_x[prev_size -2];
+                  double ref_y_prev = previous_path_y[prev_size -2];
+
+                  ref_yaw = atan2(ref_y-ref_y_prev, ref_x-ref_x_prev);  
+
+                  ptsx.push_back(ref_x_prev);
+                  ptsx.push_back(ref_x);
+
+                  ptsy.push_back(ref_y_prev);
+                  ptsy.push_back(ref_y);
+                  
+As we need more points, so based on the current Frenet position we use Function getXY to obtain position in cartesian coordinate after 30 m, 60 m, 90 m in Frenet Coordinate. So bascially we have 5 points to obtain the spline.
+
+In order to keep the consistency, all the points in previous trajectory will be used in the new trajectory. Always 50 points will be created for the next trajectory. So how do we get the rest points besides the points from the previous trajectory. It is assumed that the ego-vehicle will move with reference velocity for 30 m in the horizon. The target distance can be calculated as follows:
+
+                double target_x = 30.0;
+                double target_y = s(target_x);
+                double target_dist = sqrt(target_x*target_x + target_y*target_y);
+                
+If we know the x_point, then we know the corresponing y_point.
+
+                double x_add_on = 0;
+
+                // Fill up the rest of our path planner after filling it with previous points, 
+                for (int i = 1; i <= 50-previous_path_x.size(); i++)
+                {
+                  double N = (target_dist/(.02*ref_vel/2.24));
+                  double x_point = x_add_on + target_x/N;
+                  double y_point = s(x_point);
+
+                  x_add_on = x_point;
+
+                  double x_ref = x_point;
+                  double y_ref = y_point;
+
+                  // rotate back to normal after rotating it earlier
+                  x_point = (x_ref * cos(ref_yaw)-y_ref*sin(ref_yaw));
+                  y_point = (x_ref * sin(ref_yaw)+y_ref*cos(ref_yaw));
+
+                  x_point += ref_x;
+                  y_point += ref_y;
+
+                  next_x_vals.push_back(x_point);
+                  next_y_vals.push_back(y_point);
+                }
+                
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).  
 
