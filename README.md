@@ -1,15 +1,9 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
+## In this project a path planning algorithm is implemented to drive the vehicle on the highway. It includes three parts: prediction, behavior planning and path planning. In the prediction part, the behavior of other vehicles on the road from sensor fusion will be predicted. Then in the behavior planning the ego-vehicle's behavior is planned. in this simplified highway scenario, the vehicle can only execute three hehaviors: keep in the current lane, change to the left lane and change to the right lane. And of course we need to brake, if the ego-vehicle is near to the other vehicle, and accelerate to the maximal allowed velocity, if their distance is not far. At last, except the waypoints from the previous trajectory, the rest points in 50 points are calculated.
 
 ### Prediction
-For the prediction we need to know if there is vehicle in the same lane, left lane and right lane
-Situation 1: The vehicle stays in the same lane. If there is a vehicle in the front and in 30 m, we brake. If not, we accelerate to the required velocity 50 mph.
-Situation 2: If there is no vehicle in the distance of 30 m from the ego-vehicle after the trajectory is executed, then we can execute the left lane change.
-Situation 3: If there is no vehicle in the distance of 30 m from the ego-vehicle after the trajectory is executed, then we can execute the right lane change.
-So bascically we need to obtain after finish executing the current trajectory（change to the left lane, change to the right lane, keep in the current lane)
-
 The basic rule is that the distance of ego-vehicle to other vehicle should be greater than 30 m. So we need to know if we follow one of the movements (change to the left lane, change to the right lane, keep in the current lane) after finish executing the current trajectory, this requirement will be violated or not. For this purpose, we have created three booleans.
-
 
                 bool car_straight = false;
                 bool car_left = false;
@@ -56,7 +50,28 @@ Now let's check if it violates the 30 m distance rule in each lane.
                   }
 
 ### Behavior Planning
-In this part we need to decide which decision the vehicle will make. So we need to solve two problems: in which lane will the ego-vehicle be, and what is the reference velocity for the ego-vehicle. As in a simplified highway situatation, the vehicle can  Let's think of the situation, if after executing the trajector
+In this part we need to decide which decision the vehicle will make. So we need to solve two problems: in which lane will the ego-vehicle be, and what is the reference velocity for the ego-vehicle. As in a simplified highway situatation, the vehicle can only choose one of the decisions for lane: keep the current lane, change to the left lane and change to the right lane. If it violates the 30 m distance rule in the current lane, then we consider if we can change the lane. Left lane has priority compare with right lane. If it doesn't violate the 30 m rule, then we change the lane. if changing lane is not possible, then we brake the vehicle with the allowed maximal acceleration. If in the current lane there is no potential danger, then we keep in the current lane. Besides, if the velocity of the ego-vehicle is less than the expected velocity, we accelerate the vehicle with the allowed maximal acceleration.
+
+                if(car_straight)
+                {
+                  if(!car_left && lane>0)
+                  {
+                    lane--; 
+                  }
+                  else if(!car_right && lane<2)
+                  {
+                    lane++;
+                  }
+                  else
+                  {
+                    ref_vel -= MAX_ACC;
+                  }
+                }
+                else if(ref_vel < MAX_SPEED)
+                {
+                  
+                    ref_vel += MAX_ACC;
+                }
 
 ### Trajectory Planning
 If the previous trajectory has no point or only one point, then set the refence point to the current position of the ego-vehicle and set the reference yaw rate to the current yaw rate of the ego vehicle. 
