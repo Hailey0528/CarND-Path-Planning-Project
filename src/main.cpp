@@ -244,6 +244,8 @@ int main() {
           	// Sensor Fusion Data, a list of all other cars on the same side of the road.
           	auto sensor_fusion = j[1]["sensor_fusion"];
 
+                // Some code are from the course of Udacity
+
                 int prev_size = previous_path_x.size();
                 if(prev_size > 0)
                 {
