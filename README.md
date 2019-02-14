@@ -2,12 +2,61 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ### Prediction
-this is a specific situation for prediction. The 
-Assume the vehicle is in the highway. 
-after executing the current trajectory if
+For the prediction we need to know if there is vehicle in the same lane, left lane and right lane
+Situation 1: The vehicle stays in the same lane. If there is a vehicle in the front and in 30 m, we brake. If not, we accelerate to the required velocity 50 mph.
+Situation 2: If there is no vehicle in the distance of 30 m from the ego-vehicle after the trajectory is executed, then we can execute the left lane change.
+Situation 3: If there is no vehicle in the distance of 30 m from the ego-vehicle after the trajectory is executed, then we can execute the right lane change.
+So bascically we need to obtain after finish executing the current trajectory（change to the left lane, change to the right lane, keep in the current lane)
+
+The basic rule is that the distance of ego-vehicle to other vehicle should be greater than 30 m. So we need to know if we follow one of the movements (change to the left lane, change to the right lane, keep in the current lane) after finish executing the current trajectory, this requirement will be violated or not. For this purpose, we have created three booleans.
+
+
+                bool car_straight = false;
+                bool car_left = false;
+                bool car_right = false;
+
+For every vehicle the sensor fusion has observed, the lane number is obtained.
+
+                //decide the maneuver the car can do 
+                for (int i = 0; i < sensor_fusion.size(); i++){
+                  float d = sensor_fusion[i][6];
+                  int car_lane = -1;
+                  if (d > 0 && d < 4){
+                    car_lane = 0;
+                  }else if (d > 4 && d < 8){
+                     car_lane = 1;
+                  }else if (d > 8 && d < 12){
+                     car_lane = 2;
+                  }
+
+Then we assume that the vehicle will drive with the constant speed during the whole previous trajectory. The speed will be calculated with the checked vehicle's current velocity in x and y direction. And the s in Frenet coordinate after executing the previous trajectory will be calculated.
+
+                  //calculate the vehicle's speed
+                  double vx = sensor_fusion[i][3];
+                  double vy = sensor_fusion[i][4];
+                  double check_speed = sqrt(vx*vx + vy*vy);
+                  double check_car_s = sensor_fusion[i][5];
+
+                  //estimate the vehicle's postion after executing the previous trajectory
+                  check_car_s += (double)(prev_size*0.02*check_speed);
+                 
+Now let's check if it violates the 30 m distance rule in each lane.
+
+                if (car_lane == lane)
+                  {
+                    car_straight |= check_car_s - car_s > 0 && check_car_s - car_s < 30;
+                  }
+                  else if(car_lane - lane == -1)
+                  {
+                    car_left |= check_car_s - car_s < 30 && check_car_s - car_s > -30;
+                  }
+                  else if(car_lane - lane == 1)
+                  {
+                    car_right |= check_car_s - car_s < 30 && check_car_s - car_s > -30;
+                  }
 
 ### Behavior Planning
-In this part we need to decide which decision the vehicle will make. So we need to solve two problems: in which lane will the ego-vehicle be, and what is the reference velocity for the ego-vehicle. As in a simplified highway situatation, the vehicle can only execute three moves: change the lane to the left, change the lane to the right, decelerate and accelerate in the same lane. Let's think of the situation, if after executing the trajector
+In this part we need to decide which decision the vehicle will make. So we need to solve two problems: in which lane will the ego-vehicle be, and what is the reference velocity for the ego-vehicle. As in a simplified highway situatation, the vehicle can  Let's think of the situation, if after executing the trajector
 
 ### Trajectory Planning
 If the previous trajectory has no point or only one point, then set the refence point to the current position of the ego-vehicle and set the reference yaw rate to the current yaw rate of the ego vehicle. 
