@@ -289,7 +289,7 @@ int main() {
                 }
 
                 //behavior planning
-                double speed_diff = 0.224;
+                double MAX_ACC = 0.224;
                 const double MAX_SPEED = 49.5;
                 if(car_straight)
                 {
@@ -303,12 +303,13 @@ int main() {
                   }
                   else
                   {
-                    ref_vel -= speed_diff;
+                    ref_vel -= MAX_ACC;
                   }
                 }
-                else
+                else if(ref_vel < MAX_SPEED)
                 {
-                  ref_vel += speed_diff;
+                  
+                    ref_vel += MAX_ACC;
                 }
 
 
